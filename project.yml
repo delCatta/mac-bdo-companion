@@ -1,0 +1,27 @@
+name: BDOCompanion
+options:
+  bundleIdPrefix: com.delcatta
+  deploymentTarget:
+    macOS: "14.0"
+  xcodeVersion: "16.0"
+settings:
+  base:
+    SWIFT_VERSION: "6.0"
+    MACOSX_DEPLOYMENT_TARGET: "14.0"
+    SWIFT_STRICT_CONCURRENCY: complete
+targets:
+  BDOCompanion:
+    type: application
+    platform: macOS
+    sources:
+      - BDOCompanion
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.delcatta.BDOCompanion
+        PRODUCT_NAME: BDO Companion
+        INFOPLIST_KEY_LSUIElement: true
+        CODE_SIGN_ENTITLEMENTS: BDOCompanion/BDOCompanion.entitlements
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        GENERATE_INFOPLIST_FILE: true
+    entitlements:
+      path: BDOCompanion/BDOCompanion.entitlements
