@@ -10,8 +10,10 @@ struct BDOCompanionApp: App {
     @AppStorage("trackedBossesData") private var trackedBossesData = Data()
 
     var body: some Scene {
-        MenuBarExtra(engine.menuBarText, systemImage: "shield.fill") {
+        MenuBarExtra {
             BossListView(engine: engine)
+        } label: {
+            Text(engine.menuBarText)
         }
         .menuBarExtraStyle(.window)
     }
