@@ -124,6 +124,7 @@ final class BossTimerEngine {
     ) -> Date? {
         var cal = calendar
         cal.timeZone = timeZone
+        cal.firstWeekday = 1 // Force Sunday-start weeks to match DayOfWeek enum
 
         // Get the start of the current week in the region timezone
         guard let startOfWeek = cal.dateInterval(of: .weekOfYear, for: now)?.start else {
