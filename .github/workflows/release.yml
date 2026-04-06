@@ -1,0 +1,41 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      - name: Generate project
+        run: xcodegen generate
+
+      - name: Build
+        run: |
+          xcodebuild -project BDOCompanion.xcodeproj \
+            -scheme BDOCompanion \
+            -configuration Release \
+            -derivedDataPath build/derived \
+            -destination 'platform=macOS' \
+            CODE_SIGN_IDENTITY="-" \
+            build
+
+      - name: Package
+        run: |
+          APP_PATH="build/derived/Build/Products/Release/BDO Companion.app"
+          mkdir -p build/release
+          cp -R "$APP_PATH" "build/release/"
+          cd build/release && zip -r ../BDOCompanion.zip "BDO Companion.app"
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: build/BDOCompanion.zip
+          generate_release_notes: true
