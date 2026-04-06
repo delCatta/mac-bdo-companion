@@ -1,14 +1,13 @@
 import Foundation
 import Observation
 
+@MainActor
 @Observable
 final class BossTimerEngine {
     var upcomingSpawns: [UpcomingSpawn] = []
     var nextSpawn: UpcomingSpawn? { upcomingSpawns.first }
 
     private var timer: Timer?
-    private var lastComputedRegion: Region?
-    private var lastComputedBosses: Set<Boss>?
 
     var selectedRegion: Region = .na {
         didSet { recompute() }
@@ -24,14 +23,18 @@ final class BossTimerEngine {
     }
 
     deinit {
-        timer?.invalidate()
+        // Timer retains its target weakly via closure, so it will just no-op
     }
 
     func startTimer() {
         timer?.invalidate()
-        timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in
-            self?.tick()
+        let t = Timer(timeInterval: 1, repeats: true) { [weak self] _ in
+            Task { @MainActor in
+                self?.tick()
+            }
         }
+        RunLoop.main.add(t, forMode: .common)
+        timer = t
     }
 
     private func tick() {
@@ -110,7 +113,7 @@ final class BossTimerEngine {
         upcomingSpawns = Array(upcoming.prefix(20))
     }
 
-    private func nextDate(
+    private nonisolated func nextDate(
         for dayOfWeek: DayOfWeek,
         hour: Int,
         minute: Int,

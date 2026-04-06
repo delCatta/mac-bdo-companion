@@ -10,6 +10,10 @@ enum Boss: String, CaseIterable, Codable, Identifiable {
     case quint
     case muraka
     case vell
+    case goldenPigKing
+    case bulgasal
+    case sangoon
+    case uturi
 
     var id: String { rawValue }
 
@@ -24,6 +28,10 @@ enum Boss: String, CaseIterable, Codable, Identifiable {
         case .quint: "Quint"
         case .muraka: "Muraka"
         case .vell: "Vell"
+        case .goldenPigKing: "Golden Pig King"
+        case .bulgasal: "Bulgasal"
+        case .sangoon: "Sangoon"
+        case .uturi: "Uturi"
         }
     }
 
@@ -37,6 +45,8 @@ enum Boss: String, CaseIterable, Codable, Identifiable {
             return .world
         case .vell:
             return .ocean
+        case .goldenPigKing, .bulgasal, .sangoon, .uturi:
+            return .loml
         }
     }
 
@@ -51,6 +61,10 @@ enum Boss: String, CaseIterable, Codable, Identifiable {
         case .quint: "figure.stand"
         case .muraka: "mountain.2.fill"
         case .vell: "water.waves"
+        case .goldenPigKing: "crown.fill"
+        case .bulgasal: "lizard.fill"
+        case .sangoon: "moonphase.waning.crescent"
+        case .uturi: "leaf.fill"
         }
     }
 }
@@ -60,4 +74,5 @@ enum BossCategory: String, CaseIterable {
     case special = "Special Bosses"
     case world = "World Bosses"
     case ocean = "Ocean Boss"
+    case loml = "LOML Bosses"
 }

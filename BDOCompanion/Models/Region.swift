@@ -20,7 +20,7 @@ enum Region: String, CaseIterable, Codable, Identifiable {
     var timeZone: TimeZone {
         switch self {
         case .na: TimeZone(identifier: "America/Los_Angeles")!
-        case .eu: TimeZone(identifier: "UTC")!
+        case .eu: TimeZone(identifier: "Europe/Berlin")!
         case .sea: TimeZone(identifier: "Asia/Singapore")!
         case .sa: TimeZone(identifier: "America/Sao_Paulo")!
         }
