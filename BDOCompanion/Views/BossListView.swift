@@ -19,8 +19,13 @@ struct BossListView: View {
     private var header: some View {
         HStack {
             VStack(alignment: .leading, spacing: 2) {
+                #if DEBUG
+                Text("BDO Companion (DEV)")
+                    .font(.headline)
+                #else
                 Text("BDO Companion")
                     .font(.headline)
+                #endif
                 Text(engine.selectedRegion.displayName)
                     .font(.caption)
                     .foregroundStyle(.secondary)
