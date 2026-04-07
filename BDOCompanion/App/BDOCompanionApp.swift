@@ -14,9 +14,17 @@ struct BDOCompanionApp: App {
         } label: {
             let text = engine.menuBarText
             if text.isEmpty {
+                #if DEBUG
+                Text("BDO Companion (DEV)")
+                #else
                 Text("BDO Companion")
+                #endif
             } else {
+                #if DEBUG
+                Text("DEV · \(text)").monospacedDigit()
+                #else
                 Text(text).monospacedDigit()
+                #endif
             }
         }
         .menuBarExtraStyle(.window)
@@ -40,9 +48,11 @@ struct BDOCompanionApp: App {
         // Schedule initial notifications
         DispatchQueue.main.asyncAfter(deadline: .now() + 2) { [engine] in
             let minutes = UserDefaults.standard.integer(forKey: "alertMinutesBefore")
+            let progressive = UserDefaults.standard.bool(forKey: "progressiveAlerts")
             NotificationService.shared.scheduleNotifications(
                 for: engine.upcomingSpawns,
-                alertMinutesBefore: minutes > 0 ? minutes : 10
+                alertMinutesBefore: minutes > 0 ? minutes : 10,
+                progressive: progressive
             )
         }
     }

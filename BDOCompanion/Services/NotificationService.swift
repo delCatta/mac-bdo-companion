@@ -41,7 +41,8 @@ final class NotificationService: @unchecked Sendable {
 
     func scheduleNotifications(
         for spawns: [UpcomingSpawn],
-        alertMinutesBefore: Int
+        alertMinutesBefore: Int,
+        progressive: Bool = false
     ) {
         let center = UNUserNotificationCenter.current()
 
@@ -53,7 +54,10 @@ final class NotificationService: @unchecked Sendable {
 
             center.removeAllPendingNotificationRequests()
 
-            let alertInterval = TimeInterval(alertMinutesBefore * 60)
+            let alertTimes = progressive
+                ? Self.progressiveIntervals(for: alertMinutesBefore)
+                : [alertMinutesBefore]
+
             let now = Date()
             let cutoff = now.addingTimeInterval(24 * 3600)
             let toSchedule = spawns
@@ -61,28 +65,41 @@ final class NotificationService: @unchecked Sendable {
                 .prefix(50)
 
             for spawn in toSchedule {
-                let fireDate = spawn.date.addingTimeInterval(-alertInterval)
-                let interval = fireDate.timeIntervalSince(now)
-                guard interval > 0 else { continue }
+                for minutes in alertTimes {
+                    let fireDate = spawn.date.addingTimeInterval(-TimeInterval(minutes * 60))
+                    let interval = fireDate.timeIntervalSince(now)
+                    guard interval > 0 else { continue }
 
-                let content = UNMutableNotificationContent()
-                content.title = "Boss Spawning Soon"
-                content.body = "\(spawn.spawn.bossNames) in \(alertMinutesBefore) minutes"
-                content.sound = .default
+                    let content = UNMutableNotificationContent()
+                    content.title = "Boss Spawning Soon"
+                    content.body = "\(spawn.spawn.bossNames) in \(minutes) minute\(minutes == 1 ? "" : "s")"
+                    content.sound = .default
 
-                let trigger = UNTimeIntervalNotificationTrigger(
-                    timeInterval: interval,
-                    repeats: false
-                )
+                    let trigger = UNTimeIntervalNotificationTrigger(
+                        timeInterval: interval,
+                        repeats: false
+                    )
 
-                let request = UNNotificationRequest(
-                    identifier: "boss-\(spawn.spawn.dayOfWeek.rawValue)-\(spawn.spawn.hour)-\(spawn.spawn.minute)",
-                    content: content,
-                    trigger: trigger
-                )
+                    let id = "boss-\(spawn.spawn.dayOfWeek.rawValue)-\(spawn.spawn.hour)-\(spawn.spawn.minute)-\(minutes)"
+                    let request = UNNotificationRequest(
+                        identifier: id,
+                        content: content,
+                        trigger: trigger
+                    )
 
-                center.add(request)
+                    center.add(request)
+                }
             }
+        }
+    }
+
+    static func progressiveIntervals(for baseMinutes: Int) -> [Int] {
+        switch baseMinutes {
+        case 5:  return [5, 3, 1]
+        case 10: return [10, 5, 1]
+        case 15: return [15, 10, 5, 3, 1]
+        case 30: return [30, 20, 10, 5, 2]
+        default: return [baseMinutes]
         }
     }
 }

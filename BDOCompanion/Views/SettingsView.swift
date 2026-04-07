@@ -10,6 +10,7 @@ struct SettingsView: View {
     @Bindable var engine: BossTimerEngine
     @AppStorage("selectedRegion") private var selectedRegionRaw = "na"
     @AppStorage("alertMinutesBefore") private var alertMinutesBefore = 10
+    @AppStorage("progressiveAlerts") private var progressiveAlerts = false
 @AppStorage("alertSound") private var alertSoundRaw = AlertSound.bossRoar.rawValue
     @AppStorage("trackedBossesData") private var trackedBossesData = Data()
     @State private var launchAtLogin = false
@@ -116,6 +117,15 @@ struct SettingsView: View {
                 }
             }
 
+            Toggle("Progressive alerts", isOn: $progressiveAlerts)
+                .font(.subheadline)
+                .onChange(of: progressiveAlerts) { _, _ in
+                    rescheduleNotifications()
+                }
+            Text(progressiveAlertDescription)
+                .font(.caption2)
+                .foregroundStyle(.tertiary)
+
             VStack(alignment: .leading, spacing: 4) {
                 Text("Alert sound")
                     .font(.subheadline)
@@ -204,10 +214,17 @@ struct SettingsView: View {
         }
     }
 
+    private var progressiveAlertDescription: String {
+        let intervals = NotificationService.progressiveIntervals(for: alertMinutesBefore)
+        let formatted = intervals.map { "\($0)m" }.joined(separator: ", ")
+        return progressiveAlerts ? "Alerts at: \(formatted)" : "Single alert at \(alertMinutesBefore)m"
+    }
+
     private func rescheduleNotifications() {
         NotificationService.shared.scheduleNotifications(
             for: engine.upcomingSpawns,
-            alertMinutesBefore: alertMinutesBefore
+            alertMinutesBefore: alertMinutesBefore,
+            progressive: progressiveAlerts
         )
     }
 
