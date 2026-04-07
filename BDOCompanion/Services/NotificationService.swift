@@ -30,6 +30,21 @@ final class NotificationService: @unchecked Sendable {
         }
     }
 
+    func sendTestNotification() {
+        let center = UNUserNotificationCenter.current()
+        let content = UNMutableNotificationContent()
+        content.title = "Boss Spawning Soon"
+        content.body = "This is a test alert"
+        content.sound = .default
+
+        let request = UNNotificationRequest(
+            identifier: "test-alert",
+            content: content,
+            trigger: UNTimeIntervalNotificationTrigger(timeInterval: 1, repeats: false)
+        )
+        center.add(request)
+    }
+
     func scheduleNotifications(
         for spawns: [UpcomingSpawn],
         alertMinutesBefore: Int

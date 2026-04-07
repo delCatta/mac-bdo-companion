@@ -1,9 +1,13 @@
 # BDO Companion
 
+<img src="assets/appicon.png" width="128" alt="BDO Companion icon" />
+
 A lightweight macOS menu bar app that tracks Black Desert Online world boss spawn times with live countdowns and native notifications.
 
 ![macOS 14+](https://img.shields.io/badge/macOS-14%2B-blue)
 ![Swift 6](https://img.shields.io/badge/Swift-6-orange)
+
+<img src="assets/screenshot.png" width="360" alt="BDO Companion screenshot" />
 
 ## Features
 

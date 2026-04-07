@@ -50,9 +50,17 @@ struct SettingsView: View {
 
     private var alertSection: some View {
         VStack(alignment: .leading, spacing: 4) {
-            Text("Alert before spawn")
+            HStack {
+                Text("Alert before spawn")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                Spacer()
+                Button("Test Alert") {
+                    NotificationService.shared.sendTestNotification()
+                }
                 .font(.subheadline)
-                .foregroundStyle(.secondary)
+                .controlSize(.small)
+            }
             Picker("", selection: $alertMinutesBefore) {
                 ForEach(alertOptions, id: \.self) { minutes in
                     Text("\(minutes) min").tag(minutes)
