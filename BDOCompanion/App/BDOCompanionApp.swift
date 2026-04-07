@@ -4,7 +4,6 @@ import SwiftUI
 struct BDOCompanionApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     @State private var engine = BossTimerEngine()
-    @AppStorage("showCountdownInMenuBar") private var showCountdownInMenuBar = true
     @AppStorage("selectedRegion") private var selectedRegionRaw = "na"
     @AppStorage("alertMinutesBefore") private var alertMinutesBefore = 10
     @AppStorage("trackedBossesData") private var trackedBossesData = Data()
@@ -13,7 +12,12 @@ struct BDOCompanionApp: App {
         MenuBarExtra {
             BossListView(engine: engine)
         } label: {
-            Text(engine.menuBarText)
+            let text = engine.menuBarText
+            if text.isEmpty {
+                Text("BDO Companion")
+            } else {
+                Text(text).monospacedDigit()
+            }
         }
         .menuBarExtraStyle(.window)
     }

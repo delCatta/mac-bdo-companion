@@ -1,3 +1,4 @@
+import AppKit
 import Foundation
 @preconcurrency import UserNotifications
 
@@ -30,19 +31,12 @@ final class NotificationService: @unchecked Sendable {
         }
     }
 
-    func sendTestNotification() {
-        let center = UNUserNotificationCenter.current()
-        let content = UNMutableNotificationContent()
-        content.title = "Boss Spawning Soon"
-        content.body = "This is a test alert"
-        content.sound = .default
-
-        let request = UNNotificationRequest(
-            identifier: "test-alert",
-            content: content,
-            trigger: UNTimeIntervalNotificationTrigger(timeInterval: 1, repeats: false)
-        )
-        center.add(request)
+    func playAlertSound(_ sound: AlertSound) {
+        guard let url = Bundle.main.url(forResource: sound.filename, withExtension: "aiff") else {
+            NSSound.beep()
+            return
+        }
+        NSSound(contentsOf: url, byReference: true)?.play()
     }
 
     func scheduleNotifications(

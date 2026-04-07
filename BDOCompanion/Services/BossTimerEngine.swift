@@ -147,10 +147,9 @@ final class BossTimerEngine {
         return cal.date(from: components)
     }
 
-    // Menu bar label: "Kzarka · 2h 15m"
     var menuBarText: String {
-        guard let next = nextSpawn else { return "No spawns" }
+        guard let next = nextSpawn else { return "" }
         let name = next.spawn.bosses.first?.displayName ?? ""
-        return "\(name) · \(next.countdownText)"
+        return "\(name) \u{00B7} \(next.countdownText)"
     }
 }

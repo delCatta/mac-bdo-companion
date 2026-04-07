@@ -6,12 +6,11 @@ struct MenuBarLabel: View {
     let showCountdown: Bool
 
     var body: some View {
-        HStack(spacing: 4) {
+        if showCountdown && !countdown.isEmpty {
+            Label("\(bossName) \u{00B7} \(countdown)", systemImage: "shield.fill")
+                .monospacedDigit()
+        } else {
             Image(systemName: "shield.fill")
-            if showCountdown && !countdown.isEmpty {
-                Text(countdown)
-                    .monospacedDigit()
-            }
         }
     }
 }
