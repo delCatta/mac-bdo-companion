@@ -204,7 +204,9 @@ struct SettingsView: View {
             engine.selectedRegion = region
         }
         if let bosses = try? JSONDecoder().decode(Set<Boss>.self, from: trackedBossesData) {
-            engine.trackedBosses = bosses
+            // Include any new bosses added since the set was last saved
+            let newBosses = Set(Boss.allCases).subtracting(bosses)
+            engine.trackedBosses = bosses.union(newBosses)
         }
     }
 
