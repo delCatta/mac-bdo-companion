@@ -8,12 +8,14 @@ import Foundation
 
 enum BossSchedule {
     static func spawns(for region: Region) -> [BossSpawn] {
+        let base: [BossSpawn]
         switch region {
-        case .na: return naSchedule
-        case .eu: return euSchedule
-        case .sea: return seaSchedule
-        case .sa: return saSchedule
+        case .na: base = naSchedule
+        case .eu: base = euSchedule
+        case .sea: base = seaSchedule
+        case .sa: base = saSchedule
         }
+        return base + eventSpawns(for: region)
     }
 
     // MARK: - NA Schedule (Times in PT / America/Los_Angeles)
@@ -95,8 +97,51 @@ enum BossSchedule {
     private static let seaSchedule: [BossSpawn] = naSchedule
     private static let saSchedule: [BossSpawn] = naSchedule
 
-    // Helper to reduce verbosity
+    // MARK: - Event Schedules
+
+    private static func eventSpawns(for region: Region) -> [BossSpawn] {
+        switch region {
+        case .na: return eggsEmperorNA
+        case .eu: return eggsEmperorEU
+        case .sea, .sa: return []
+        }
+    }
+
+    // Eggs-ceptional Emperor event — ends April 16 2026 before maintenance
+    // Does not appear on Arsha, Arsha: Anonymous, or NEW Olvia servers
+    private static let eggsEventEnd: Date = {
+        var c = DateComponents()
+        c.year = 2026; c.month = 4; c.day = 16
+        c.hour = 23; c.minute = 59; c.second = 59
+        c.timeZone = TimeZone(identifier: "UTC")
+        return Calendar.current.date(from: c)!
+    }()
+
+    // NA: 09:30, 16:30, 22:45 PDT (America/Los_Angeles)
+    private static let eggsEmperorNA: [BossSpawn] = DayOfWeek.allCases.flatMap { day in
+        [
+            e(day,  9, 30),
+            e(day, 16, 30),
+            e(day, 22, 45),
+        ]
+    }
+
+    // EU: 09:30, 18:30, 22:45 CEST (Europe/Berlin)
+    private static let eggsEmperorEU: [BossSpawn] = DayOfWeek.allCases.flatMap { day in
+        [
+            e(day,  9, 30),
+            e(day, 18, 30),
+            e(day, 22, 45),
+        ]
+    }
+
+    // MARK: - Helpers
+
     private static func s(_ bosses: [Boss], _ day: DayOfWeek, _ h: Int, _ m: Int) -> BossSpawn {
         BossSpawn(bosses: bosses, dayOfWeek: day, hour: h, minute: m)
+    }
+
+    private static func e(_ day: DayOfWeek, _ h: Int, _ m: Int) -> BossSpawn {
+        BossSpawn(bosses: [.eggsceptionalEmperor], dayOfWeek: day, hour: h, minute: m, activeUntil: eggsEventEnd)
     }
 }

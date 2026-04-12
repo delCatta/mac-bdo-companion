@@ -6,6 +6,15 @@ struct BossSpawn: Identifiable {
     let dayOfWeek: DayOfWeek
     let hour: Int
     let minute: Int
+    let activeUntil: Date?
+
+    init(bosses: [Boss], dayOfWeek: DayOfWeek, hour: Int, minute: Int, activeUntil: Date? = nil) {
+        self.bosses = bosses
+        self.dayOfWeek = dayOfWeek
+        self.hour = hour
+        self.minute = minute
+        self.activeUntil = activeUntil
+    }
 
     var bossNames: String {
         bosses.map(\.displayName).joined(separator: ", ")

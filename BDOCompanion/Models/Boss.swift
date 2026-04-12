@@ -14,6 +14,7 @@ enum Boss: String, CaseIterable, Codable, Identifiable {
     case bulgasal
     case sangoon
     case uturi
+    case eggsceptionalEmperor
 
     var id: String { rawValue }
 
@@ -32,6 +33,7 @@ enum Boss: String, CaseIterable, Codable, Identifiable {
         case .bulgasal: "Bulgasal"
         case .sangoon: "Sangoon"
         case .uturi: "Uturi"
+        case .eggsceptionalEmperor: "Eggs-ceptional Emperor"
         }
     }
 
@@ -47,6 +49,8 @@ enum Boss: String, CaseIterable, Codable, Identifiable {
             return .ocean
         case .goldenPigKing, .bulgasal, .sangoon, .uturi:
             return .loml
+        case .eggsceptionalEmperor:
+            return .event
         }
     }
 
@@ -65,6 +69,7 @@ enum Boss: String, CaseIterable, Codable, Identifiable {
         case .bulgasal: "lizard.fill"
         case .sangoon: "moonphase.waning.crescent"
         case .uturi: "leaf.fill"
+        case .eggsceptionalEmperor: "wand.and.stars"
         }
     }
 }
@@ -75,4 +80,5 @@ enum BossCategory: String, CaseIterable {
     case world = "World Bosses"
     case ocean = "Ocean Boss"
     case loml = "LOML Bosses"
+    case event = "Event Bosses"
 }

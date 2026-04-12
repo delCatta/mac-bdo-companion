@@ -87,6 +87,11 @@ final class BossTimerEngine {
                     let remaining = date.timeIntervalSince(now)
                     guard remaining > 0 else { continue }
 
+                    // Skip event spawns past their end date
+                    if let activeUntil = spawn.activeUntil, date > activeUntil {
+                        continue
+                    }
+
                     let filteredSpawn = BossSpawn(
                         bosses: relevantBosses,
                         dayOfWeek: spawn.dayOfWeek,
