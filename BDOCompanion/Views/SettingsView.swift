@@ -13,7 +13,7 @@ struct SettingsView: View {
     @AppStorage("alertMinutesBefore") private var alertMinutesBefore = 10
     @AppStorage("progressiveAlerts") private var progressiveAlerts = false
 @AppStorage("bossAlertSound") private var bossAlertSoundRaw = AlertSound.bossRoar.rawValue
-    @AppStorage("nodeWarAlertSound") private var nodeWarAlertSoundRaw = AlertSound.bossRoar.rawValue
+    @AppStorage("nodeWarAlertSound") private var nodeWarAlertSoundRaw = AlertSound.warHorn.rawValue
     @AppStorage("trackedBossesData") private var trackedBossesData = Data()
     @State private var launchAtLogin = false
     @State private var selectedTab: SettingsTab = .soundAlerts
@@ -106,7 +106,7 @@ struct SettingsView: View {
     }
 
     private var selectedNodeWarSound: AlertSound {
-        AlertSound(rawValue: nodeWarAlertSoundRaw) ?? .bossRoar
+        AlertSound(rawValue: nodeWarAlertSoundRaw) ?? .warHorn
     }
 
     private var soundAlertsTab: some View {

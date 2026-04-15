@@ -60,9 +60,9 @@ struct BDOCompanionApp: App {
                 ?? AlertSound.bossRoar.rawValue
             let nodeWarSoundRaw = UserDefaults.standard.string(forKey: "nodeWarAlertSound")
                 ?? UserDefaults.standard.string(forKey: "alertSound")
-                ?? AlertSound.bossRoar.rawValue
+                ?? AlertSound.warHorn.rawValue
             let bossSound = AlertSound(rawValue: bossSoundRaw) ?? .bossRoar
-            let nodeWarSound = AlertSound(rawValue: nodeWarSoundRaw) ?? .bossRoar
+            let nodeWarSound = AlertSound(rawValue: nodeWarSoundRaw) ?? .warHorn
             NotificationService.shared.scheduleNotifications(
                 for: engine.upcomingSpawns,
                 alertMinutesBefore: minutes > 0 ? minutes : 10,
