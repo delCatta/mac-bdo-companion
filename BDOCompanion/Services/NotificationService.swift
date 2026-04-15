@@ -43,7 +43,8 @@ final class NotificationService: @unchecked Sendable {
         for spawns: [UpcomingSpawn],
         alertMinutesBefore: Int,
         progressive: Bool = false,
-        alertSound: AlertSound = .bossRoar
+        bossAlertSound: AlertSound = .bossRoar,
+        nodeWarAlertSound: AlertSound = .bossRoar
     ) {
         let center = UNUserNotificationCenter.current()
 
@@ -72,16 +73,17 @@ final class NotificationService: @unchecked Sendable {
                     guard interval > 0 else { continue }
 
                     let content = UNMutableNotificationContent()
-                    content.title = "Boss Spawning Soon"
-                    content.body = "\(spawn.spawn.bossNames) in \(minutes) minute\(minutes == 1 ? "" : "s")"
-                    content.sound = UNNotificationSound(named: UNNotificationSoundName(alertSound.filename + ".aiff"))
+                    content.title = Self.notificationTitle(for: spawn.category)
+                    content.body = "\(spawn.displayName) in \(minutes) minute\(minutes == 1 ? "" : "s")"
+                    let sound = spawn.category == .boss ? bossAlertSound : nodeWarAlertSound
+                    content.sound = UNNotificationSound(named: UNNotificationSoundName(sound.filename + ".aiff"))
 
                     let trigger = UNTimeIntervalNotificationTrigger(
                         timeInterval: interval,
                         repeats: false
                     )
 
-                    let id = "boss-\(spawn.spawn.dayOfWeek.rawValue)-\(spawn.spawn.hour)-\(spawn.spawn.minute)-\(minutes)"
+                    let id = "\(spawn.category.id)-\(Int(spawn.date.timeIntervalSince1970))-\(minutes)"
                     let request = UNNotificationRequest(
                         identifier: id,
                         content: content,
@@ -91,6 +93,14 @@ final class NotificationService: @unchecked Sendable {
                     center.add(request)
                 }
             }
+        }
+    }
+
+    static func notificationTitle(for category: TimerCategory) -> String {
+        switch category {
+        case .boss: "Boss Spawning Soon"
+        case .nodeWar: "Node War Starting Soon"
+        case .custom: "Timer Alert"
         }
     }
 

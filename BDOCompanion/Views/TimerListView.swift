@@ -1,9 +1,13 @@
 import SwiftUI
 
-struct BossListView: View {
-    @Bindable var engine: BossTimerEngine
+struct TimerListView: View {
+    @Bindable var engine: TimerEngine
     @AppStorage("showCountdownInMenuBar") private var showCountdownInMenuBar = true
     @State private var showSettings = false
+
+    private var customTimerStore: CustomTimerStore {
+        engine.customTimerStore
+    }
 
     var body: some View {
         VStack(spacing: 0) {
@@ -53,7 +57,7 @@ struct BossListView: View {
                     if let spawns = grouped[group] {
                         Section {
                             ForEach(spawns) { spawn in
-                                BossRowView(spawn: spawn)
+                                EventRowView(spawn: spawn)
                                     .padding(.horizontal, 12)
                                     .padding(.vertical, 4)
                             }
@@ -91,26 +95,34 @@ struct BossListView: View {
         var result: [String: [UpcomingSpawn]] = [:]
         let sortedSpawns = engine.upcomingSpawns
 
-        let activeSpawns = sortedSpawns.filter(\.isActive)
-        let futureSpawns = sortedSpawns.filter { !$0.isActive }
+        let byCategory = Dictionary(grouping: sortedSpawns, by: \.category)
+        let sortedCategories = byCategory.keys.sorted { $0.sortOrder < $1.sortOrder }
 
-        for spawn in activeSpawns {
-            result["0-Active Now", default: []].append(spawn)
-        }
+        for category in sortedCategories {
+            guard let spawns = byCategory[category] else { continue }
+            let categoryPrefix = "\(category.sortOrder)-\(category.displayName)"
 
-        for (index, spawn) in futureSpawns.enumerated() {
-            let key: String
-            if index == 0 {
-                key = "1-Next Up"
-            } else {
-                let label = spawn.groupLabel
-                switch label {
-                case "Today": key = "2-Today"
-                case "Tomorrow": key = "3-Tomorrow"
-                default: key = "4-\(label)"
-                }
+            let activeSpawns = spawns.filter(\.isActive)
+            let futureSpawns = spawns.filter { !$0.isActive }
+
+            for spawn in activeSpawns {
+                result["\(categoryPrefix) · 0-Active Now", default: []].append(spawn)
             }
-            result[key, default: []].append(spawn)
+
+            for (index, spawn) in futureSpawns.enumerated() {
+                let key: String
+                if index == 0 {
+                    key = "\(categoryPrefix) · 1-Next Up"
+                } else {
+                    let label = spawn.groupLabel
+                    switch label {
+                    case "Today": key = "\(categoryPrefix) · 2-Today"
+                    case "Tomorrow": key = "\(categoryPrefix) · 3-Tomorrow"
+                    default: key = "\(categoryPrefix) · 4-\(label)"
+                    }
+                }
+                result[key, default: []].append(spawn)
+            }
         }
 
         return result

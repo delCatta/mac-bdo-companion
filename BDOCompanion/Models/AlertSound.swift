@@ -1,6 +1,6 @@
 import Foundation
 
-enum AlertSound: String, CaseIterable, Identifiable {
+enum AlertSound: String, CaseIterable, Identifiable, Codable {
     case bossRoar = "boss_roar"
     case womanScream = "woman_scream"
     case maleScream = "male_scream"

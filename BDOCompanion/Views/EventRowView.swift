@@ -1,18 +1,18 @@
 import SwiftUI
 
-struct BossRowView: View {
+struct EventRowView: View {
     let spawn: UpcomingSpawn
     @State private var glowPulsing = false
 
     var body: some View {
         HStack {
             HStack(spacing: 6) {
-                Image(systemName: spawn.spawn.bosses.first?.iconSymbol ?? "questionmark")
+                Image(systemName: spawn.spawn?.bosses.first?.iconSymbol ?? "flag.fill")
                     .foregroundStyle(urgencyColor)
                     .frame(width: 16)
 
                 VStack(alignment: .leading, spacing: 1) {
-                    Text(spawn.spawn.bossNames)
+                    Text(spawn.displayName)
                         .font(.system(.body, weight: .medium))
 
                     Text(spawnTimeText)

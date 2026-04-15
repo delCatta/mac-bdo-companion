@@ -4,17 +4,21 @@ import ServiceManagement
 enum SettingsTab: String, CaseIterable {
     case bosses = "Bosses"
     case soundAlerts = "Sound & Alerts"
+    case customTimers = "Timers"
 }
 
 struct SettingsView: View {
-    @Bindable var engine: BossTimerEngine
+    @Bindable var engine: TimerEngine
     @AppStorage("selectedRegion") private var selectedRegionRaw = "na"
     @AppStorage("alertMinutesBefore") private var alertMinutesBefore = 10
     @AppStorage("progressiveAlerts") private var progressiveAlerts = false
-@AppStorage("alertSound") private var alertSoundRaw = AlertSound.bossRoar.rawValue
+@AppStorage("bossAlertSound") private var bossAlertSoundRaw = AlertSound.bossRoar.rawValue
+    @AppStorage("nodeWarAlertSound") private var nodeWarAlertSoundRaw = AlertSound.bossRoar.rawValue
     @AppStorage("trackedBossesData") private var trackedBossesData = Data()
     @State private var launchAtLogin = false
     @State private var selectedTab: SettingsTab = .soundAlerts
+    @State private var editingTimer: CustomTimer?
+    @State private var isAddingTimer = false
 
     private let alertOptions = [5, 10, 15, 30]
 
@@ -60,6 +64,8 @@ struct SettingsView: View {
             bossesTab
         case .soundAlerts:
             soundAlertsTab
+        case .customTimers:
+            customTimersTab
         }
     }
 
@@ -95,8 +101,12 @@ struct SettingsView: View {
 
     // MARK: - Sound & Alerts Tab
 
-    private var selectedAlertSound: AlertSound {
-        AlertSound(rawValue: alertSoundRaw) ?? .bossRoar
+    private var selectedBossSound: AlertSound {
+        AlertSound(rawValue: bossAlertSoundRaw) ?? .bossRoar
+    }
+
+    private var selectedNodeWarSound: AlertSound {
+        AlertSound(rawValue: nodeWarAlertSoundRaw) ?? .bossRoar
     }
 
     private var soundAlertsTab: some View {
@@ -127,24 +137,47 @@ struct SettingsView: View {
                 .foregroundStyle(.tertiary)
 
             VStack(alignment: .leading, spacing: 4) {
-                Text("Alert sound")
+                Text("Boss alert sound")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
                 HStack {
-                    Picker("", selection: $alertSoundRaw) {
+                    Picker("", selection: $bossAlertSoundRaw) {
                         ForEach(AlertSound.allCases) { sound in
                             Text(sound.displayName).tag(sound.rawValue)
                         }
                     }
                     .labelsHidden()
                     Button {
-                        NotificationService.shared.playAlertSound(selectedAlertSound)
+                        NotificationService.shared.playAlertSound(selectedBossSound)
                     } label: {
                         Image(systemName: "play.fill")
                     }
                     .controlSize(.small)
                 }
-                .onChange(of: alertSoundRaw) { _, _ in
+                .onChange(of: bossAlertSoundRaw) { _, _ in
+                    rescheduleNotifications()
+                }
+            }
+
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Node war alert sound")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                HStack {
+                    Picker("", selection: $nodeWarAlertSoundRaw) {
+                        ForEach(AlertSound.allCases) { sound in
+                            Text(sound.displayName).tag(sound.rawValue)
+                        }
+                    }
+                    .labelsHidden()
+                    Button {
+                        NotificationService.shared.playAlertSound(selectedNodeWarSound)
+                    } label: {
+                        Image(systemName: "play.fill")
+                    }
+                    .controlSize(.small)
+                }
+                .onChange(of: nodeWarAlertSoundRaw) { _, _ in
                     rescheduleNotifications()
                 }
             }
@@ -160,6 +193,108 @@ struct SettingsView: View {
             Spacer()
         }
         .padding(16)
+    }
+
+    // MARK: - Custom Timers Tab
+
+    private var customTimersTab: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 12) {
+                if engine.customTimerStore.customTimers.isEmpty && !isAddingTimer {
+                    Text("No custom timers yet")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                        .frame(maxWidth: .infinity, alignment: .center)
+                        .padding(.vertical, 20)
+                }
+
+                ForEach(engine.customTimerStore.customTimers) { timer in
+                    if editingTimer?.id == timer.id {
+                        customTimerForm(editing: timer)
+                    } else {
+                        customTimerRow(timer)
+                    }
+                }
+
+                if isAddingTimer {
+                    customTimerForm(editing: nil)
+                }
+
+                if !isAddingTimer && editingTimer == nil {
+                    Button {
+                        isAddingTimer = true
+                    } label: {
+                        Label("Add Timer", systemImage: "plus")
+                    }
+                    .controlSize(.small)
+                }
+            }
+            .padding(16)
+        }
+    }
+
+    private func customTimerRow(_ timer: CustomTimer) -> some View {
+        HStack {
+            VStack(alignment: .leading, spacing: 2) {
+                Text(timer.name)
+                    .font(.subheadline)
+                Text("\(timer.dayOfWeek.shortName) \(String(format: "%02d:%02d", timer.hour, timer.minute))")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
+            Spacer()
+
+            Toggle("", isOn: Binding(
+                get: { timer.isEnabled },
+                set: { newValue in
+                    var updated = timer
+                    updated.isEnabled = newValue
+                    engine.customTimerStore.update(updated)
+                    rescheduleNotifications()
+                }
+            ))
+            .toggleStyle(.checkbox)
+            .labelsHidden()
+
+            Button {
+                editingTimer = timer
+            } label: {
+                Image(systemName: "pencil")
+            }
+            .buttonStyle(.borderless)
+            .controlSize(.small)
+
+            Button(role: .destructive) {
+                engine.customTimerStore.delete(timer)
+                rescheduleNotifications()
+            } label: {
+                Image(systemName: "trash")
+            }
+            .buttonStyle(.borderless)
+            .controlSize(.small)
+        }
+    }
+
+    @ViewBuilder
+    private func customTimerForm(editing timer: CustomTimer?) -> some View {
+        CustomTimerFormView(
+            initial: timer,
+            onSave: { saved in
+                if timer != nil {
+                    engine.customTimerStore.update(saved)
+                } else {
+                    engine.customTimerStore.add(saved)
+                }
+                editingTimer = nil
+                isAddingTimer = false
+                rescheduleNotifications()
+            },
+            onCancel: {
+                editingTimer = nil
+                isAddingTimer = false
+            }
+        )
     }
 
     // MARK: - Region
@@ -230,7 +365,8 @@ struct SettingsView: View {
             for: engine.upcomingSpawns,
             alertMinutesBefore: alertMinutesBefore,
             progressive: progressiveAlerts,
-            alertSound: selectedAlertSound
+            bossAlertSound: selectedBossSound,
+            nodeWarAlertSound: selectedNodeWarSound
         )
     }
 
@@ -246,5 +382,109 @@ struct SettingsView: View {
                 print("Launch at login error: \(error)")
             }
         }
+    }
+}
+
+private struct CustomTimerFormView: View {
+    let initial: CustomTimer?
+    let onSave: (CustomTimer) -> Void
+    let onCancel: () -> Void
+
+    @State private var name: String
+    @State private var dayOfWeek: DayOfWeek
+    @State private var hour: Int
+    @State private var minute: Int
+    @State private var alertSoundRaw: String
+    @State private var isEnabled: Bool
+
+    init(initial: CustomTimer?, onSave: @escaping (CustomTimer) -> Void, onCancel: @escaping () -> Void) {
+        self.initial = initial
+        self.onSave = onSave
+        self.onCancel = onCancel
+        _name = State(initialValue: initial?.name ?? "")
+        _dayOfWeek = State(initialValue: initial?.dayOfWeek ?? .sunday)
+        _hour = State(initialValue: initial?.hour ?? 12)
+        _minute = State(initialValue: initial?.minute ?? 0)
+        _alertSoundRaw = State(initialValue: initial?.alertSound.rawValue ?? AlertSound.bossRoar.rawValue)
+        _isEnabled = State(initialValue: initial?.isEnabled ?? true)
+    }
+
+    private var canSave: Bool {
+        !name.trimmingCharacters(in: .whitespaces).isEmpty
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            TextField("Timer name", text: $name)
+                .textFieldStyle(.roundedBorder)
+                .font(.subheadline)
+
+            HStack {
+                Picker("Day", selection: $dayOfWeek) {
+                    ForEach(DayOfWeek.allCases, id: \.self) { day in
+                        Text(day.shortName).tag(day)
+                    }
+                }
+                .labelsHidden()
+
+                Picker("Hour", selection: $hour) {
+                    ForEach(0..<24, id: \.self) { h in
+                        Text(String(format: "%02d", h)).tag(h)
+                    }
+                }
+                .labelsHidden()
+                .frame(width: 60)
+
+                Text(":")
+                    .font(.subheadline)
+
+                Picker("Minute", selection: $minute) {
+                    ForEach(0..<60, id: \.self) { m in
+                        Text(String(format: "%02d", m)).tag(m)
+                    }
+                }
+                .labelsHidden()
+                .frame(width: 60)
+            }
+
+            HStack {
+                Text("Sound")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                Picker("", selection: $alertSoundRaw) {
+                    ForEach(AlertSound.allCases) { sound in
+                        Text(sound.displayName).tag(sound.rawValue)
+                    }
+                }
+                .labelsHidden()
+            }
+
+            Toggle("Enabled", isOn: $isEnabled)
+                .font(.subheadline)
+                .toggleStyle(.checkbox)
+
+            HStack {
+                Spacer()
+                Button("Cancel", action: onCancel)
+                    .controlSize(.small)
+                Button("Save") {
+                    let timer = CustomTimer(
+                        id: initial?.id ?? UUID(),
+                        name: name.trimmingCharacters(in: .whitespaces),
+                        dayOfWeek: dayOfWeek,
+                        hour: hour,
+                        minute: minute,
+                        alertSound: AlertSound(rawValue: alertSoundRaw) ?? .bossRoar,
+                        isEnabled: isEnabled
+                    )
+                    onSave(timer)
+                }
+                .controlSize(.small)
+                .disabled(!canSave)
+            }
+        }
+        .padding(8)
+        .background(Color(nsColor: .controlBackgroundColor))
+        .clipShape(RoundedRectangle(cornerRadius: 6))
     }
 }

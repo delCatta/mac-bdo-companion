@@ -3,7 +3,7 @@ import Observation
 
 @MainActor
 @Observable
-final class BossTimerEngine {
+final class TimerEngine {
     var upcomingSpawns: [UpcomingSpawn] = []
     var nextSpawn: UpcomingSpawn? { upcomingSpawns.first }
 
@@ -17,7 +17,13 @@ final class BossTimerEngine {
         didSet { recompute() }
     }
 
-    init() {
+    let customTimerStore: CustomTimerStore
+
+    init(customTimerStore: CustomTimerStore = CustomTimerStore()) {
+        self.customTimerStore = customTimerStore
+        customTimerStore.onDidChange = { [weak self] in
+            self?.recompute()
+        }
         recompute()
         startTimer()
     }
@@ -48,11 +54,21 @@ final class BossTimerEngine {
                 needsRecompute = true
                 continue
             }
-            updated.append(UpcomingSpawn(
-                spawn: spawn.spawn,
-                date: spawn.date,
-                timeRemaining: remaining
-            ))
+            if let bossSpawn = spawn.spawn {
+                updated.append(UpcomingSpawn(
+                    spawn: bossSpawn,
+                    date: spawn.date,
+                    timeRemaining: remaining,
+                    category: spawn.category
+                ))
+            } else {
+                updated.append(UpcomingSpawn(
+                    displayName: spawn.displayName,
+                    date: spawn.date,
+                    timeRemaining: remaining,
+                    category: spawn.category
+                ))
+            }
         }
 
         if needsRecompute {
@@ -105,7 +121,58 @@ final class BossTimerEngine {
                     upcoming.append(UpcomingSpawn(
                         spawn: filteredSpawn,
                         date: date,
-                        timeRemaining: remaining
+                        timeRemaining: remaining,
+                        category: .boss
+                    ))
+                }
+            }
+        }
+
+        // Node war spawns
+        for entry in NodeWarSchedule.entries(for: region) {
+            for weekOffset in 0...1 {
+                if let date = nextDate(
+                    for: entry.dayOfWeek,
+                    hour: entry.hour,
+                    minute: entry.minute,
+                    in: region.timeZone,
+                    weekOffset: weekOffset,
+                    relativeTo: now,
+                    calendar: calendar
+                ) {
+                    let remaining = date.timeIntervalSince(now)
+                    guard remaining > -300 else { continue }
+
+                    upcoming.append(UpcomingSpawn(
+                        displayName: "\(entry.tier) Node War",
+                        date: date,
+                        timeRemaining: remaining,
+                        category: .nodeWar
+                    ))
+                }
+            }
+        }
+
+        // Custom timer spawns
+        for timer in customTimerStore.customTimers where timer.isEnabled {
+            for weekOffset in 0...1 {
+                if let date = nextDate(
+                    for: timer.dayOfWeek,
+                    hour: timer.hour,
+                    minute: timer.minute,
+                    in: region.timeZone,
+                    weekOffset: weekOffset,
+                    relativeTo: now,
+                    calendar: calendar
+                ) {
+                    let remaining = date.timeIntervalSince(now)
+                    guard remaining > -300 else { continue }
+
+                    upcoming.append(UpcomingSpawn(
+                        displayName: timer.name,
+                        date: date,
+                        timeRemaining: remaining,
+                        category: .custom(id: timer.id.uuidString)
                     ))
                 }
             }
@@ -158,7 +225,7 @@ final class BossTimerEngine {
     var menuBarText: String {
         let activeSpawn = upcomingSpawns.first(where: \.isActive)
         guard let target = activeSpawn ?? nextSpawn else { return "" }
-        let name = target.spawn.bosses.first?.displayName ?? ""
+        let name = target.spawn?.bosses.first?.displayName ?? target.displayName
         return "\(name) \u{00B7} \(target.countdownText)"
     }
 }

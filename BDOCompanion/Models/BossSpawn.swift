@@ -45,9 +45,27 @@ enum DayOfWeek: Int, CaseIterable, Codable {
 
 struct UpcomingSpawn: Identifiable {
     let id = UUID()
-    let spawn: BossSpawn
+    let displayName: String
+    let spawn: BossSpawn?
     let date: Date
     let timeRemaining: TimeInterval
+    let category: TimerCategory
+
+    init(spawn: BossSpawn, date: Date, timeRemaining: TimeInterval, category: TimerCategory) {
+        self.displayName = spawn.bossNames
+        self.spawn = spawn
+        self.date = date
+        self.timeRemaining = timeRemaining
+        self.category = category
+    }
+
+    init(displayName: String, date: Date, timeRemaining: TimeInterval, category: TimerCategory) {
+        self.displayName = displayName
+        self.spawn = nil
+        self.date = date
+        self.timeRemaining = timeRemaining
+        self.category = category
+    }
 
     var countdownText: String {
         if timeRemaining <= 0 && timeRemaining > -60 {
