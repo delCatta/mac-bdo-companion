@@ -20,10 +20,13 @@ Package.resolved
 # macOS
 .DS_Store
 *.swp
+*.swo
+*~
 *~.nib
 
-# AppCode
+# AppCode / VS Code
 .idea/
+.vscode/
 
 # Fastlane
 fastlane/report.xml
@@ -31,10 +34,22 @@ fastlane/Preview.html
 fastlane/screenshots
 fastlane/test_output
 
-# Claude config (contains API keys)
+# AI tools
 .claude/
+.gsd/
+.gsd
+.gsd-id
+.bg-shell/
+.kiro/
+.agents/
+skills-lock.json
 
 # Temporary files
 tmp/
 !tmp/.keep
 .mcp.json
+
+# Environment
+.env
+.env.*
+!.env.example

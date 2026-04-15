@@ -50,12 +50,19 @@ struct UpcomingSpawn: Identifiable {
     let timeRemaining: TimeInterval
 
     var countdownText: String {
-        let remaining = max(0, timeRemaining)
-        let hours = Int(remaining) / 3600
-        let minutes = (Int(remaining) % 3600) / 60
-        let seconds = Int(remaining) % 60
+        if timeRemaining <= 0 && timeRemaining > -60 {
+            return "NOW"
+        }
+        if timeRemaining <= -60 && timeRemaining > -300 {
+            let minutesAgo = Int(-timeRemaining) / 60
+            return "\(minutesAgo)m ago"
+        }
 
-        if remaining < 600 {
+        let hours = Int(timeRemaining) / 3600
+        let minutes = (Int(timeRemaining) % 3600) / 60
+        let seconds = Int(timeRemaining) % 60
+
+        if timeRemaining < 600 {
             return String(format: "%d:%02d:%02d", hours, minutes, seconds)
         } else if hours > 0 {
             return "\(hours)h \(minutes)m"
@@ -64,7 +71,10 @@ struct UpcomingSpawn: Identifiable {
         }
     }
 
+    var isActive: Bool { timeRemaining <= 0 && timeRemaining > -300 }
+
     var urgency: SpawnUrgency {
+        if isActive { return .active }
         if timeRemaining < 300 { return .imminent }
         if timeRemaining < 900 { return .soon }
         return .normal
@@ -81,6 +91,7 @@ struct UpcomingSpawn: Identifiable {
 }
 
 enum SpawnUrgency {
+    case active
     case imminent
     case soon
     case normal

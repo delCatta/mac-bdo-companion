@@ -40,23 +40,26 @@ final class BossTimerEngine {
     private func tick() {
         let now = Date()
 
-        // Check if the first spawn has passed; if so, recompute
-        if let first = upcomingSpawns.first, first.date <= now {
-            recompute()
-            return
-        }
-
-        // Update time remaining for all spawns
+        var needsRecompute = false
         var updated: [UpcomingSpawn] = []
         for spawn in upcomingSpawns {
             let remaining = spawn.date.timeIntervalSince(now)
+            if remaining <= -300 {
+                needsRecompute = true
+                continue
+            }
             updated.append(UpcomingSpawn(
                 spawn: spawn.spawn,
                 date: spawn.date,
                 timeRemaining: remaining
             ))
         }
-        upcomingSpawns = updated
+
+        if needsRecompute {
+            recompute()
+        } else {
+            upcomingSpawns = updated
+        }
     }
 
     func recompute() {
@@ -85,7 +88,7 @@ final class BossTimerEngine {
                     calendar: calendar
                 ) {
                     let remaining = date.timeIntervalSince(now)
-                    guard remaining > 0 else { continue }
+                    guard remaining > -300 else { continue }
 
                     // Skip event spawns past their end date
                     if let activeUntil = spawn.activeUntil, date > activeUntil {
@@ -153,8 +156,9 @@ final class BossTimerEngine {
     }
 
     var menuBarText: String {
-        guard let next = nextSpawn else { return "" }
-        let name = next.spawn.bosses.first?.displayName ?? ""
-        return "\(name) \u{00B7} \(next.countdownText)"
+        let activeSpawn = upcomingSpawns.first(where: \.isActive)
+        guard let target = activeSpawn ?? nextSpawn else { return "" }
+        let name = target.spawn.bosses.first?.displayName ?? ""
+        return "\(name) \u{00B7} \(target.countdownText)"
     }
 }

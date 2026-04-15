@@ -88,21 +88,26 @@ struct BossListView: View {
     }
 
     private var groupedSpawns: [String: [UpcomingSpawn]] {
-        // Use ordered grouping with section ordering: Next Up, Today, Tomorrow, then day names
         var result: [String: [UpcomingSpawn]] = [:]
         let sortedSpawns = engine.upcomingSpawns
 
-        // Mark the first spawn as "Next Up"
-        for (index, spawn) in sortedSpawns.enumerated() {
+        let activeSpawns = sortedSpawns.filter(\.isActive)
+        let futureSpawns = sortedSpawns.filter { !$0.isActive }
+
+        for spawn in activeSpawns {
+            result["0-Active Now", default: []].append(spawn)
+        }
+
+        for (index, spawn) in futureSpawns.enumerated() {
             let key: String
             if index == 0 {
-                key = "0-Next Up"
+                key = "1-Next Up"
             } else {
                 let label = spawn.groupLabel
                 switch label {
-                case "Today": key = "1-Today"
-                case "Tomorrow": key = "2-Tomorrow"
-                default: key = "3-\(label)"
+                case "Today": key = "2-Today"
+                case "Tomorrow": key = "3-Tomorrow"
+                default: key = "4-\(label)"
                 }
             }
             result[key, default: []].append(spawn)

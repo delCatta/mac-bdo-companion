@@ -42,7 +42,8 @@ final class NotificationService: @unchecked Sendable {
     func scheduleNotifications(
         for spawns: [UpcomingSpawn],
         alertMinutesBefore: Int,
-        progressive: Bool = false
+        progressive: Bool = false,
+        alertSound: AlertSound = .bossRoar
     ) {
         let center = UNUserNotificationCenter.current()
 
@@ -73,7 +74,7 @@ final class NotificationService: @unchecked Sendable {
                     let content = UNMutableNotificationContent()
                     content.title = "Boss Spawning Soon"
                     content.body = "\(spawn.spawn.bossNames) in \(minutes) minute\(minutes == 1 ? "" : "s")"
-                    content.sound = .default
+                    content.sound = UNNotificationSound(named: UNNotificationSoundName(alertSound.filename + ".aiff"))
 
                     let trigger = UNTimeIntervalNotificationTrigger(
                         timeInterval: interval,

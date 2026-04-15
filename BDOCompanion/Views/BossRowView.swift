@@ -2,6 +2,7 @@ import SwiftUI
 
 struct BossRowView: View {
     let spawn: UpcomingSpawn
+    @State private var glowPulsing = false
 
     var body: some View {
         HStack {
@@ -27,10 +28,29 @@ struct BossRowView: View {
                 .foregroundStyle(urgencyColor)
         }
         .padding(.vertical, 2)
+        .shadow(
+            color: spawn.urgency == .active ? .green.opacity(glowPulsing ? 0.8 : 0.3) : .clear,
+            radius: 4
+        )
+        .animation(
+            spawn.urgency == .active
+                ? .easeInOut(duration: 1).repeatForever(autoreverses: true)
+                : .default,
+            value: glowPulsing
+        )
+        .onAppear {
+            if spawn.urgency == .active {
+                glowPulsing = true
+            }
+        }
+        .onChange(of: spawn.urgency) { _, newValue in
+            glowPulsing = newValue == .active
+        }
     }
 
     private var urgencyColor: Color {
         switch spawn.urgency {
+        case .active: .green
         case .imminent: .red
         case .soon: .yellow
         case .normal: .primary

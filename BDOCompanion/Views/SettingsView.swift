@@ -144,6 +144,9 @@ struct SettingsView: View {
                     }
                     .controlSize(.small)
                 }
+                .onChange(of: alertSoundRaw) { _, _ in
+                    rescheduleNotifications()
+                }
             }
 
             Divider()
@@ -226,7 +229,8 @@ struct SettingsView: View {
         NotificationService.shared.scheduleNotifications(
             for: engine.upcomingSpawns,
             alertMinutesBefore: alertMinutesBefore,
-            progressive: progressiveAlerts
+            progressive: progressiveAlerts,
+            alertSound: selectedAlertSound
         )
     }
 

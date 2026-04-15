@@ -49,10 +49,13 @@ struct BDOCompanionApp: App {
         DispatchQueue.main.asyncAfter(deadline: .now() + 2) { [engine] in
             let minutes = UserDefaults.standard.integer(forKey: "alertMinutesBefore")
             let progressive = UserDefaults.standard.bool(forKey: "progressiveAlerts")
+            let soundRaw = UserDefaults.standard.string(forKey: "alertSound") ?? AlertSound.bossRoar.rawValue
+            let alertSound = AlertSound(rawValue: soundRaw) ?? .bossRoar
             NotificationService.shared.scheduleNotifications(
                 for: engine.upcomingSpawns,
                 alertMinutesBefore: minutes > 0 ? minutes : 10,
-                progressive: progressive
+                progressive: progressive,
+                alertSound: alertSound
             )
         }
     }
