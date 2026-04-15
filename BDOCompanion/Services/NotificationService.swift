@@ -44,7 +44,7 @@ final class NotificationService: @unchecked Sendable {
         alertMinutesBefore: Int,
         progressive: Bool = false,
         bossAlertSound: AlertSound = .bossRoar,
-        nodeWarAlertSound: AlertSound = .bossRoar
+        nodeWarAlertSound: AlertSound = .warHorn
     ) {
         let center = UNUserNotificationCenter.current()
 
