@@ -1,8 +1,10 @@
-# BDO Companion
+# BDO Companion (Deprecated)
+
+> **This project is no longer maintained.** About a week after building this, Black Desert Online added a built-in boss timer to the game itself. Use that instead. No further development is planned. That said, if you're still using the app and want to update the schedule data, PRs are welcome.
 
 <img src="assets/appicon.png" width="128" alt="BDO Companion icon" />
 
-A lightweight macOS menu bar app that tracks Black Desert Online world boss spawn times with live countdowns and native notifications.
+A lightweight macOS menu bar app that tracked Black Desert Online world boss spawn times with live countdowns and native notifications.
 
 ![macOS 14+](https://img.shields.io/badge/macOS-14%2B-blue)
 ![Swift 6](https://img.shields.io/badge/Swift-6-orange)
